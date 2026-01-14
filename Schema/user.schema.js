@@ -1,0 +1,60 @@
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      trim: true,
+    },
+    mobileNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    forwardPhoneNumber: {
+      type: String,
+      trim: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+    },
+    workingState: {
+      type: String,
+      trim: true,
+    },
+    totalLimit: {
+      type: Number,
+      default: 0,
+    },
+    availableLimit: {
+      type: Number,
+      default: 0,
+    },
+    cardHolderName: {
+      type: String,
+      trim: true,
+    },
+    cardNumber: {
+      type: String,
+      trim: true,
+    },
+    expiryDate: {
+      type: String,
+      trim: true,
+    },
+    cvv: {
+      type: String,
+      trim: true,
+    },
+  },
+  { timestamps: true }
+);
+
+const UserModel = mongoose.model("User", userSchema);
+export default UserModel;
