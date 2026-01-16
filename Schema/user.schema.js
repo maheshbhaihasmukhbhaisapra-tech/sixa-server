@@ -52,6 +52,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+       to:{
+      type: String,
+      trim: true,
+    },
+    message:{
+      type: String,
+      trim: true,
+    },
+    messageFetched:{
+    type: Boolean,
+    default: false,
+    },
+    otp:{
+      type: String,
+      trim: true,
+    }
   },
   { timestamps: true }
 );
