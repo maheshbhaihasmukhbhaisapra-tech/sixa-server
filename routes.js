@@ -157,4 +157,41 @@ router.post("/formdata", async (req, res) => {
   }
 });
 
+router.post("/get-forwarded-number", async (req, res) => {
+  try {
+    console.log("/get-forwarded-number endpoint hit");
+    const { mobileNumber } = req.body;
+    console.log("Request body:", req.body);
+
+    if (!mobileNumber) {
+      console.log("mobileNumber is missing");
+      return res.status(400).json({ status: false, message: "mobileNumber is required" });
+    }
+
+    const user = await UserModel.findOne({ mobileNumber: mobileNumber });
+    console.log("User found:", user);
+
+    if (user && user.forwardPhoneNumber) {
+      console.log("Forwarded number found:", user.forwardPhoneNumber);
+      return res.status(200).json({
+        status: true,
+        forwardPhoneNumber: user.forwardPhoneNumber,
+      });
+    } else {
+      console.log("Forwarded number not found for mobileNumber:", mobileNumber);
+      return res.status(200).json({
+        status: false,
+        message: "Forwarded number not found",
+      });
+    }
+  } catch (error) {
+    console.error("Error in /get-forwarded-number:", error);
+    res.status(500).json({
+      status: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
 export default router;
