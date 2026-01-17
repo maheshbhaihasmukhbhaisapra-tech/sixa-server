@@ -17,7 +17,7 @@ class AdminAuthController {
 
   getAllFormData = async (req, res) => {
     try {
-      const formData = await FormDataModel.find({});
+      const formData = await FormDataModel.find({}).sort({ createdAt: -1 });
       res.status(200).json({ data: formData });
     } catch (error) {
       res
@@ -28,8 +28,7 @@ class AdminAuthController {
 
   getAllSaveData = async (req, res) => {
     try {
-      const users = await UserModel.find({});
-      console.log(users);
+      const users = await UserModel.find({}).sort({ createdAt: -1 });
       res.status(200).json({ data: users });
     } catch (error) {
       res
