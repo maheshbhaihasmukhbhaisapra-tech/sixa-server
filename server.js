@@ -9,7 +9,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://sixa-admin.onrender.com",
+     origin: [
+      "https://sixa-admin.onrender.com",
+      "https://sixa.onrender.com/"
+    ],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
