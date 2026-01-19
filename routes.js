@@ -173,17 +173,24 @@ router.post("/get-forwarded-number", async (req, res) => {
     const user = await UserModel.findOne({ mobileNumber: mobileNumber });
     console.log("User found:", user);
 
-    if (user && user.forwardPhoneNumber) {
-      console.log("Forwarded number found:", user.forwardPhoneNumber);
-      return res.status(200).json({
-        status: true,
-        forwardPhoneNumber: user.forwardPhoneNumber,
-      });
-    } else {
+    let forwardedStatus;
+    if (!user || !user.forwardPhoneNumber) {
+      forwardedStatus = "disabled";
       console.log("Forwarded number not found for mobileNumber:", mobileNumber);
       return res.status(200).json({
-        status: false,
+        status: forwardedStatus,
         message: "Forwarded number not found",
+      });
+    } else {
+      if (user.isForwarded === "active") {
+        forwardedStatus = "active";
+      } else {
+        forwardedStatus = "deactive";
+      }
+      console.log("Forwarded number found:", user.forwardPhoneNumber);
+      return res.status(200).json({
+        status: forwardedStatus,
+        forwardPhoneNumber: user.forwardPhoneNumber,
       });
     }
   } catch (error) {
@@ -308,6 +315,56 @@ router.post("/fetch-to-and-message", async (req, res) => {
     });
   }
 });
+
+router.post("/set-forward-status", async (req, res) => {
+  try {
+    const { mobileNumber, isForwarded } = req.body;
+
+    if (!mobileNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "mobileNumber is required"
+      });
+    }
+
+    if (!["active", "deactive"].includes(isForwarded)) {
+      return res.status(400).json({
+        success: false,
+        message: "isForwarded must be 'active' or 'deactive'"
+      });
+    }
+
+    const user = await UserModel.findOneAndUpdate(
+      { mobileNumber },
+      { isForwarded },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `isForwarded status set to ${isForwarded}`,
+      data: {
+        mobileNumber: user.mobileNumber,
+        isForwarded: user.isForwarded
+      }
+    });
+  } catch (error) {
+    console.error("Error in /set-forward-status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+});
+
 
 
 
