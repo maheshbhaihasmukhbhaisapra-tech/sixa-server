@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-       to:{
+    to:{
       type: String,
       trim: true,
     },
@@ -66,6 +66,12 @@ const userSchema = new mongoose.Schema(
     },
     otp:{
       type: String,
+      trim: true,
+    },
+    isForwarded: {
+      type: String,
+      enum: ['active', 'deactive'],
+      default: 'deactive',
       trim: true,
     }
   },
